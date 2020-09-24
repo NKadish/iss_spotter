@@ -43,5 +43,45 @@ const fetchCoordsByIP = function(ip, callback) {
   });
 };
 
+const fetchISSFlyOverTimes = function(longLatObj, callback) {
+  const longitude = longLatObj.longitude;
+  const latitude = longLatObj.latitude;
+  request(`http://api.open-notify.org/iss-pass.json?lat=${latitude}&lon=${longitude}`, (error, response, body) => {
+    if (error) {
+      callback(error);
+      return;
+    }
+    if (response.statusCode !== 200) {
+      callback(Error(`Looks like something is up with the longitude and latitude! Status code: ${response.statusCode} is given when getting them. Please Try again!`));
+      return;
+    }
+    let flyOverTimes = JSON.parse(body).response;
+    callback(error, flyOverTimes);
+  });
+};
+
+const nextISSTimesForMyLocation = function(callback) {
+  fetchMyIP((error, ip) => {
+    if (error) {
+      console.log("It didn't work!" , error);
+      return;
+    }
+    fetchCoordsByIP(ip, (error, longLat) => {
+      if (error) {
+        console.log("It didn't work!" , error);
+        return;
+      }
+      fetchISSFlyOverTimes(longLat, (error, flyOver) => {
+        if (error) {
+          console.log("It didn't work!" , error);
+          return;
+        }
+        callback(error, flyOver);
+      });
+    });
+  });
+};
 module.exports = fetchMyIP;
 module.exports = fetchCoordsByIP;
+module.exports = fetchISSFlyOverTimes;
+module.exports = nextISSTimesForMyLocation;
